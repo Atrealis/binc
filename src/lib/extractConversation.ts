@@ -43,3 +43,35 @@ export function initiationBalance(messages: Message[]) {
   }
   return counts;
 }
+export function messageLengthBySpeaker(messages: Message[]) {
+  const totals: Record<string, number> = {};
+  for (const m of messages) {
+    totals[m.speaker] = (totals[m.speaker] ?? 0) + m.text.length;
+  }
+  return totals;
+}
+
+export function questionRateBySpeaker(messages: Message[]) {
+  const counts: Record<string, { questions: number; total: number }> = {};
+  for (const m of messages) {
+    if (!counts[m.speaker]) counts[m.speaker] = { questions: 0, total: 0 };
+    counts[m.speaker].total += 1;
+    if (m.text.includes("?")) counts[m.speaker].questions += 1;
+  }
+  // return as ratios
+  const ratios: Record<string, number> = {};
+  for (const [speaker, v] of Object.entries(counts)) {
+    ratios[speaker] = v.total === 0 ? 0 : Number((v.questions / v.total).toFixed(2));
+  }
+  return ratios;
+}
+
+export function apologyCountBySpeaker(messages: Message[]) {
+  const regex = /\b(sorry|apologize|apologies|my bad)\b/i;
+  const counts: Record<string, number> = {};
+  for (const m of messages) {
+    counts[m.speaker] = counts[m.speaker] ?? 0;
+    if (regex.test(m.text)) counts[m.speaker] += 1;
+  }
+  return counts;
+}

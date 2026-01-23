@@ -6,7 +6,11 @@ import {
   extractMessages,
   countAbsolutes,
   initiationBalance,
+  messageLengthBySpeaker,
+  questionRateBySpeaker,
+  apologyCountBySpeaker,
 } from "@/lib/extractConversation";
+
 import { generateAnalysisJSON } from "@/lib/ai";
 import { validateAnalysisResult } from "@/lib/validateResult";
 
@@ -15,18 +19,28 @@ async function analyzeWithAI(raw: string) {
   const absolutes = countAbsolutes(messages);
   const initiation = initiationBalance(messages);
 
-  const metrics = {
-    initiation_balance: initiation,
-    emotional_escalation_markers: {
-      count: absolutes.count,
-      examples: absolutes.excerpts.slice(0, 3),
-      confidence: "medium",
-    },
-  };
+  const lengthBySpeaker = messageLengthBySpeaker(messages);
+const questionRate = questionRateBySpeaker(messages);
+const apologies = apologyCountBySpeaker(messages);
 
-  const evidence_candidates = messages
-    .slice(0, 10)
-    .map((m) => ({ speaker: m.speaker, excerpt: m.text }));
+const metrics = {
+  initiation_balance: initiation,
+  emotional_escalation_markers: {
+    count: absolutes.count,
+    examples: absolutes.excerpts.slice(0, 3),
+    confidence: "medium",
+  },
+  message_length_by_speaker: lengthBySpeaker,
+  question_rate_by_speaker: questionRate,
+  apology_count_by_speaker: apologies,
+};
+
+
+const evidence_candidates = messages
+  .filter((m) => m.text.length > 8)
+  .slice(0, 40)
+  .map((m) => ({ speaker: m.speaker, excerpt: m.text }));
+
 
   const pack = { messages, metrics, evidence_candidates };
 
