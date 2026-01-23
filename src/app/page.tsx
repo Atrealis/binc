@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabaseClient";
 import { submitAnalysis } from "./analysisActions";
+import { runAnalysis } from "./runAnalysisActions";
 
 export default async function Home() {
   const { data: requests, error } = await supabase
@@ -41,17 +42,39 @@ export default async function Home() {
         ) : (
           <ul className="space-y-3">
             {requests.map((r) => (
-              <li key={r.id} className="border rounded-md p-3">
-                <div className="text-xs text-gray-500">
-                  {new Date(r.created_at).toLocaleString()}
-                </div>
-                <div className="text-sm font-medium">
-                  Status: {r.status}
-                </div>
-                <div className="text-xs text-gray-400">
-                  Characters: {r.raw_text.length}
-                </div>
-              </li>
+              <li key={r.id} className="border rounded-md p-3 space-y-2">
+  <div className="text-xs text-gray-500">
+    {new Date(r.created_at).toLocaleString()}
+  </div>
+
+  <div className="text-sm font-medium">Status: {r.status}</div>
+  <div className="text-xs text-gray-400">Characters: {r.raw_text.length}</div>
+
+  <form
+    action={async () => {
+      "use server";
+      await runAnalysis(r.id);
+    }}
+  >
+    <button
+      type="submit"
+      className="px-3 py-1 rounded-md bg-black text-white text-sm"
+      disabled={r.status === "done"}
+    >
+      {r.status === "done" ? "Analysis Completed" : "Run Analysis"}
+    </button>
+  </form>
+
+  {r.result && (
+    <details className="text-sm">
+      <summary className="cursor-pointer">View result (JSON for now)</summary>
+      <pre className="mt-2 text-xs overflow-auto">
+        {JSON.stringify(r.result, null, 2)}
+      </pre>
+    </details>
+  )}
+</li>
+
             ))}
           </ul>
         )}
