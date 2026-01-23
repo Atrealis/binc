@@ -9,7 +9,7 @@ export type EvidencePack = {
 
 const apiKey = process.env.GEMINI_API_KEY;
 if (!apiKey) throw new Error("Missing GEMINI_API_KEY in environment variables.");
-const ai = new GoogleGenAI({ apiKey });
+export const ai = new GoogleGenAI({ apiKey });
  // reads GEMINI_API_KEY from env :contentReference[oaicite:3]{index=3}
 function sleep(ms: number) {
   return new Promise((res) => setTimeout(res, ms));
