@@ -1,3 +1,4 @@
+import { GoogleGenAI } from "@google/genai";
 import type { Message } from "@/lib/extractConversation";
 
 export type EvidencePack = {
@@ -6,48 +7,150 @@ export type EvidencePack = {
   evidence_candidates: Array<{ speaker: string; excerpt: string }>;
 };
 
-export async function generateAnalysisJSON(_pack: EvidencePack) {
-  // STUB (works with $0, no external calls)
-  // Next step: replace this with Gemini/OpenAI/local model.
-  return {
+const apiKey = process.env.GEMINI_API_KEY;
+if (!apiKey) throw new Error("Missing GEMINI_API_KEY in environment variables.");
+const ai = new GoogleGenAI({ apiKey });
+ // reads GEMINI_API_KEY from env :contentReference[oaicite:3]{index=3}
+
+const ANALYSIS_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
     meta: {
-      analysis_version: "v1",
-      confidence_level: "low",
-      analysis_scope: "conversation-only",
-      notes: "AI adapter stub (no external model connected yet).",
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        analysis_version: { type: "string" },
+        confidence_level: { type: "string", enum: ["low", "medium", "high"] },
+        analysis_scope: { type: "string" },
+        notes: { type: "string" },
+      },
+      required: ["analysis_version", "confidence_level", "analysis_scope", "notes"],
     },
     data_quality: {
-      input_type: "raw text",
-      has_timestamps: false,
-      has_speaker_labels: true,
-      missing_context: [
-        "Tone and sarcasm cannot be inferred reliably.",
-        "Conversation may omit context outside text.",
-      ],
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        input_type: { type: "string" },
+        has_timestamps: { type: "boolean" },
+        has_speaker_labels: { type: "boolean" },
+        missing_context: { type: "array", items: { type: "string" } },
+      },
+      required: ["input_type", "has_timestamps", "has_speaker_labels", "missing_context"],
     },
-    metrics: _pack.metrics,
-    patterns: [
-      {
-        id: "pattern_stub",
-        label: "Stub pattern (AI not connected)",
-        description:
-          "This is a placeholder until you connect a model. Pipeline + validation is active.",
-        confidence: "low",
-        evidence: _pack.evidence_candidates.slice(0, 2).map((e) => ({
-          speaker: e.speaker,
-          excerpt: e.excerpt,
-          reason: "Candidate excerpt from conversation.",
-        })),
+    metrics: { type: "object" },
+    patterns: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          id: { type: "string" },
+          label: { type: "string" },
+          description: { type: "string" },
+          confidence: { type: "string", enum: ["low", "medium", "high"] },
+          evidence: {
+            type: "array",
+            items: {
+              type: "object",
+              additionalProperties: false,
+              properties: {
+                speaker: { type: "string" },
+                excerpt: { type: "string" },
+                reason: { type: "string" },
+              },
+              required: ["speaker", "excerpt", "reason"],
+            },
+            minItems: 1,
+          },
+        },
+        required: ["id", "label", "description", "confidence", "evidence"],
       },
-    ],
-    user_contributions: [],
-    uncertainties: [{ description: "AI model is not connected yet." }],
-    recommendations: [
-      {
-        focus: "Next step",
-        suggestion: "Connect an AI model provider.",
-        rationale: "Schema + validation is ready; only inference is missing.",
+    },
+    user_contributions: { type: "array" },
+    uncertainties: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: { description: { type: "string" } },
+        required: ["description"],
       },
-    ],
-  };
+      minItems: 1,
+    },
+    recommendations: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          focus: { type: "string" },
+          suggestion: { type: "string" },
+          rationale: { type: "string" },
+        },
+        required: ["focus", "suggestion", "rationale"],
+      },
+    },
+  },
+  required: [
+    "meta",
+    "data_quality",
+    "metrics",
+    "patterns",
+    "user_contributions",
+    "uncertainties",
+    "recommendations",
+  ],
+} as const;
+
+export async function generateAnalysisJSON(pack: EvidencePack) {
+  const conversation = pack.messages
+    .slice(0, 200)
+    .map((m) => `${m.speaker}: ${m.text}`)
+    .join("\n");
+
+  const evidencePool = pack.evidence_candidates
+    .slice(0, 30)
+    .map((e) => `${e.speaker}: ${e.excerpt}`)
+    .join("\n");
+
+  const prompt = `
+You are Binc's "Analysis Mode". Output MUST be valid JSON that matches the given JSON Schema.
+
+Rules:
+- Be evidence-based: every pattern must cite at least 1 excerpt from the provided evidence pool.
+- Do NOT invent quotes. Only use excerpts that appear verbatim in the evidence pool.
+- If the data is insufficient, say so in uncertainties and keep confidence low.
+- Keep it empathetic but not sycophantic; avoid validating distorted beliefs.
+- Always include at least 1 uncertainty.
+
+Inputs:
+(1) Conversation (may be truncated):
+${conversation}
+
+(2) Deterministic metrics (truthy; do not contradict them):
+${JSON.stringify(pack.metrics, null, 2)}
+
+(3) Evidence pool (use ONLY these for excerpts):
+${evidencePool}
+`.trim();
+
+  const response = await ai.models.generateContent({
+    model: "gemini-3-flash-preview",
+    contents: prompt,
+    // Force structured JSON output using schema :contentReference[oaicite:4]{index=4}
+    config: {
+      responseMimeType: "application/json",
+      responseJsonSchema: ANALYSIS_SCHEMA,
+      temperature: 0.2,
+    },
+  });
+
+  // response.text is JSON string per responseMimeType
+  const text = response.text;
+if (!text) {
+  throw new Error("Gemini returned no text output.");
+}
+return JSON.parse(text);
+
 }
