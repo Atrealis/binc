@@ -2,63 +2,73 @@
 
 import { supabase } from "@/lib/supabaseClient";
 import { revalidatePath } from "next/cache";
+import {
+  extractMessages,
+  countAbsolutes,
+  initiationBalance,
+} from "@/lib/extractConversation";
 
 function fakeAnalyze(raw: string) {
-  // MVP placeholder: writes a result in the schema shape
-  const preview = raw.slice(0, 200);
+  const messages = extractMessages(raw);
+  const absolutes = countAbsolutes(messages);
+  const initiation = initiationBalance(messages);
 
   return {
     meta: {
       analysis_version: "v1",
       confidence_level: "low",
       analysis_scope: "conversation-only",
-      notes: "This is a placeholder result (fake analyzer).",
+      notes: "Deterministic analysis (no AI yet).",
     },
     data_quality: {
       input_type: "raw text",
-      has_timestamps: raw.includes("[") && raw.includes("]"),
-      has_speaker_labels: raw.toLowerCase().includes(":"),
+      has_timestamps: false,
+      has_speaker_labels: messages.length > 0,
       missing_context: [
         "Tone and sarcasm cannot be inferred reliably.",
-        "Conversation may omit important context outside text.",
+        "Conversation may omit context outside text.",
       ],
     },
     metrics: {
       emotional_escalation_markers: {
-        count: (raw.match(/\balways\b|\bnever\b/gi) ?? []).length,
-        examples: ["always", "never"],
-        confidence: "low",
+        count: absolutes.count,
+        examples: absolutes.excerpts.slice(0, 3),
+        confidence: "medium",
       },
+      initiation_balance: initiation,
     },
-    patterns: [
-      {
-        id: "pattern_1",
-        label: "Early pattern (placeholder)",
-        description:
-          "This placeholder analyzer does not yet compute real patterns.",
-        confidence: "low",
-        evidence: [
+    patterns: absolutes.count
+      ? [
           {
-            speaker: "unknown",
-            excerpt: preview,
-            reason: "Preview excerpt from the pasted conversation.",
+            id: "pattern_absolute_language",
+            label: "Use of absolutist language",
+            description:
+              "Absolute terms (e.g. always, never) appear and may escalate conflict.",
+            confidence: "medium",
+            evidence: absolutes.excerpts.slice(0, 2).map((e) => ({
+              speaker: "unknown",
+              excerpt: e,
+              reason: "Use of absolute language.",
+            })),
           },
-        ],
-      },
-    ],
+        ]
+      : [],
     user_contributions: [],
     uncertainties: [
-      { description: "This is a placeholder analysis with limited rigor." },
+      { description: "Analysis does not infer intent or tone." },
     ],
     recommendations: [
       {
-        focus: "Next step",
-        suggestion: "Enable AI analysis after pipeline is verified.",
-        rationale: "We are currently validating end-to-end flow.",
+        focus: "Communication",
+        suggestion:
+          "Replace absolute statements with specific observations.",
+        rationale:
+          "Absolute language can escalate conflict.",
       },
     ],
   };
 }
+
 
 export async function runAnalysis(requestId: string) {
   // 1) fetch request

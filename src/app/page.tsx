@@ -1,6 +1,9 @@
 import { supabase } from "@/lib/supabaseClient";
 import { submitAnalysis } from "./analysisActions";
 import { runAnalysis } from "./runAnalysisActions";
+import Report from "../components/ui/Report";
+
+
 
 export default async function Home() {
   const { data: requests, error } = await supabase
@@ -66,13 +69,14 @@ export default async function Home() {
   </form>
 
   {r.result && (
-    <details className="text-sm">
-      <summary className="cursor-pointer">View result (JSON for now)</summary>
-      <pre className="mt-2 text-xs overflow-auto">
-        {JSON.stringify(r.result, null, 2)}
-      </pre>
-    </details>
-  )}
+  <details className="text-sm">
+    <summary className="cursor-pointer">View report</summary>
+    <div className="mt-3">
+      <Report result={r.result} />
+    </div>
+  </details>
+)}
+
 </li>
 
             ))}
