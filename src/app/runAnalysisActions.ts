@@ -14,7 +14,8 @@ import {
 import { generateAnalysisJSON } from "@/lib/ai";
 import { validateAnalysisResult } from "@/lib/validateResult";
 
-async function analyzeWithAI(raw: string) {
+async function analyzeWithAI(raw: string, latestChallenge?: string) {
+
   const messages = extractMessages(raw);
   const absolutes = countAbsolutes(messages);
   const initiation = initiationBalance(messages);
@@ -44,7 +45,8 @@ const evidence_candidates = messages
 
   const pack = { messages, metrics, evidence_candidates };
 
-  const result = await generateAnalysisJSON(pack);
+  const result = await generateAnalysisJSON(pack, latestChallenge);
+
 
   const validation = validateAnalysisResult(result);
   if (!validation.ok) {
@@ -90,11 +92,19 @@ export async function runAnalysis(requestId: string) {
     .select("id, raw_text")
     .eq("id", requestId)
     .single();
+  const { data: challenges } = await supabase
+  .from("analysis_challenges")
+  .select("challenge_text")
+  .eq("analysis_id", requestId)
+  .order("created_at", { ascending: false })
+  .limit(1);
 
+const latestChallenge = challenges?.[0]?.challenge_text;
   if (fetchErr || !req) throw new Error(fetchErr?.message ?? "Request not found");
 
   // 2) generate result JSON (fake for now)
-    const result = await analyzeWithAI(req.raw_text);
+    const result = await analyzeWithAI(req.raw_text, latestChallenge);
+
 
 
   // 3) write back result + status

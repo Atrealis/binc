@@ -2,7 +2,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { submitAnalysis } from "./analysisActions";
 import { runAnalysis } from "./runAnalysisActions";
 import Report from "../components/ui/Report";
-
+import { submitChallenge } from "./challengeActions";
 
 
 export default async function Home() {
@@ -60,12 +60,12 @@ export default async function Home() {
     }}
   >
     <button
-      type="submit"
-      className="px-3 py-1 rounded-md bg-black text-white text-sm"
-      disabled={r.status === "done"}
-    >
-      {r.status === "done" ? "Analysis Completed" : "Run Analysis"}
-    </button>
+  type="submit"
+  className="px-3 py-1 rounded-md bg-black text-white text-sm"
+>
+  {r.status === "done" ? "Re-run Analysis" : "Run Analysis"}
+</button>
+
   </form>
 
   {r.result && (
@@ -73,6 +73,19 @@ export default async function Home() {
     <summary className="cursor-pointer">View report</summary>
     <div className="mt-3">
       <Report result={r.result} />
+      <form action={submitChallenge} className="space-y-3 mt-4">
+  <input type="hidden" name="analysis_id" value={r.id} />
+  <textarea
+    name="challenge_text"
+    placeholder="Challenge the analysis (e.g., missing context, alternative explanation, why a claim is wrong)..."
+    className="w-full border rounded-md p-3 text-sm"
+    rows={4}
+  />
+  <button type="submit" className="px-3 py-2 rounded-md border text-sm">
+    Submit challenge
+  </button>
+</form>
+
     </div>
   </details>
 )}

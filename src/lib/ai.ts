@@ -11,6 +11,16 @@ const apiKey = process.env.GEMINI_API_KEY;
 if (!apiKey) throw new Error("Missing GEMINI_API_KEY in environment variables.");
 const ai = new GoogleGenAI({ apiKey });
  // reads GEMINI_API_KEY from env :contentReference[oaicite:3]{index=3}
+function sleep(ms: number) {
+  return new Promise((res) => setTimeout(res, ms));
+}
+
+function isOverload(err: any) {
+  const msg = String(err?.message ?? "");
+  const status = String(err?.status ?? "");
+  const code = String(err?.code ?? "");
+  return msg.includes("overloaded") || status === "UNAVAILABLE" || code === "503";
+}
 
 const ANALYSIS_SCHEMA = {
   type: "object",
@@ -103,7 +113,8 @@ const ANALYSIS_SCHEMA = {
   ],
 } as const;
 
-export async function generateAnalysisJSON(pack: EvidencePack) {
+export async function generateAnalysisJSON(pack: EvidencePack, userChallenge?: string) {
+
   const conversation = pack.messages
     .slice(0, 200)
     .map((m) => `${m.speaker}: ${m.text}`)
@@ -124,6 +135,9 @@ Rules:
 - Keep it empathetic but not sycophantic; avoid validating distorted beliefs.
 - Always include at least 1 uncertainty.
 
+User challenge (if any):
+${userChallenge ?? "None provided"}
+
 Inputs:
 (1) Conversation (may be truncated):
 ${conversation}
@@ -135,22 +149,39 @@ ${JSON.stringify(pack.metrics, null, 2)}
 ${evidencePool}
 `.trim();
 
-  const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
-    contents: prompt,
-    // Force structured JSON output using schema :contentReference[oaicite:4]{index=4}
-    config: {
-      responseMimeType: "application/json",
-      responseJsonSchema: ANALYSIS_SCHEMA,
-      temperature: 0.2,
-    },
-  });
+ const config = {
+  responseMimeType: "application/json",
+  responseJsonSchema: ANALYSIS_SCHEMA,
+  temperature: 0.2,
+} as const;
 
-  // response.text is JSON string per responseMimeType
-  const text = response.text;
-if (!text) {
-  throw new Error("Gemini returned no text output.");
+const modelsToTry = ["gemini-3-flash-preview", "gemini-2.0-flash"];
+
+let lastErr: any = null;
+
+for (const model of modelsToTry) {
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const response = await ai.models.generateContent({
+        model,
+        contents: prompt,
+        config,
+      });
+
+      const text = response.text;
+      if (!text) throw new Error("Gemini returned no text output.");
+      return JSON.parse(text);
+    } catch (err: any) {
+      lastErr = err;
+      if (!isOverload(err)) break; // not overload -> don't retry
+      await sleep(300 * attempt); // backoff
+    }
+  }
 }
-return JSON.parse(text);
+
+throw lastErr ?? new Error("Gemini failed with unknown error.");
+
+
+ 
 
 }
