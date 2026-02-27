@@ -1,4 +1,5 @@
 import { sendComfortMessage } from "@/app/comfortActions";
+import { Button } from "@/components/ui/button";
 
 export default function ComfortChat({
   sessionId,
@@ -14,22 +15,22 @@ export default function ComfortChat({
 
   return (
     <div className="border rounded-md p-4 space-y-4">
-      <div className="text-xs text-gray-500">
+      <div className="text-xs text-muted-foreground">
         Comfort Mode • phase: <span className="font-medium">{phase}</span>
       </div>
 
       <div className="space-y-2">
         {messages.length === 0 ? (
-          <div className="text-sm text-gray-500">Say what’s on your mind.</div>
+          <div className="text-sm text-muted-foreground">Say what’s on your mind.</div>
         ) : (
           messages.map((m, idx) => (
             <div
               key={idx}
               className={`text-sm p-3 rounded-md border ${
-                m.role === "user" ? "bg-white" : "bg-gray-50"
+                m.role === "user" ? "bg-background" : "bg-muted"
               }`}
             >
-              <div className="text-xs text-gray-500 mb-1">
+              <div className="text-xs text-muted-foreground mb-1">
                 {m.role === "user" ? "You" : "Binc"}
               </div>
               {m.content}
@@ -49,9 +50,7 @@ export default function ComfortChat({
           className="w-full border rounded-md p-3 text-sm"
           placeholder="Tell me what happened…"
         />
-        <button className="px-3 py-2 rounded-md bg-black text-white text-sm" type="submit">
-          Send
-        </button>
+        <Button type="submit" size="sm">Send</Button>
       </form>
     </div>
   );

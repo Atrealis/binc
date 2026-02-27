@@ -1,3 +1,5 @@
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+
 export default function ComfortCard({ phase }: { phase: string }) {
   const content =
     phase === "acute"
@@ -28,17 +30,21 @@ export default function ComfortCard({ phase }: { phase: string }) {
         };
 
   return (
-    <div className="border rounded-md p-4 space-y-3">
-      <div className="text-xs text-gray-500">Comfort plan (phase: {phase})</div>
-      <div className="font-semibold">{content.title}</div>
-      <ul className="list-disc pl-5 text-sm space-y-1">
-        {content.bullets.map((b) => (
-          <li key={b}>{b}</li>
-        ))}
-      </ul>
-      <div className="text-xs text-gray-500">
-        (No AI used here — this is deterministic coaching to keep it safe + free.)
-      </div>
-    </div>
+    <Card>
+      <CardHeader>
+        <CardDescription>Comfort plan (phase: {phase})</CardDescription>
+        <CardTitle>{content.title}</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <ul className="list-disc pl-5 text-sm space-y-1">
+          {content.bullets.map((b) => (
+            <li key={b}>{b}</li>
+          ))}
+        </ul>
+        <p className="text-xs text-muted-foreground">
+          (No AI used here — this is deterministic coaching to keep it safe + free.)
+        </p>
+      </CardContent>
+    </Card>
   );
 }
