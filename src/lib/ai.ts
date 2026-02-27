@@ -3,22 +3,21 @@ import type { Message } from "@/lib/extractConversation";
 
 export type EvidencePack = {
   messages: Message[];
-  metrics: Record<string, any>;
+  metrics: Record<string, unknown>;
   evidence_candidates: Array<{ speaker: string; excerpt: string }>;
 };
 
-const apiKey = process.env.GEMINI_API_KEY;
-if (!apiKey) throw new Error("Missing GEMINI_API_KEY in environment variables.");
-export const ai = new GoogleGenAI({ apiKey });
- // reads GEMINI_API_KEY from env :contentReference[oaicite:3]{index=3}
+const apiKey = process.env.GEMINI_API_KEY ?? "";
+export const ai = new GoogleGenAI({ apiKey: apiKey || "placeholder" });
+ // reads GEMINI_API_KEY from env
 function sleep(ms: number) {
   return new Promise((res) => setTimeout(res, ms));
 }
 
-function isOverload(err: any) {
-  const msg = String(err?.message ?? "");
-  const status = String(err?.status ?? "");
-  const code = String(err?.code ?? "");
+function isOverload(err: unknown) {
+  const msg = String((err as { message?: string })?.message ?? "");
+  const status = String((err as { status?: string })?.status ?? "");
+  const code = String((err as { code?: string })?.code ?? "");
   return msg.includes("overloaded") || status === "UNAVAILABLE" || code === "503";
 }
 
@@ -157,7 +156,7 @@ ${evidencePool}
 
 const modelsToTry = ["gemini-3-flash-preview", "gemini-2.0-flash"];
 
-let lastErr: any = null;
+let lastErr: unknown = null;
 
 for (const model of modelsToTry) {
   for (let attempt = 1; attempt <= 3; attempt++) {
@@ -171,7 +170,7 @@ for (const model of modelsToTry) {
       const text = response.text;
       if (!text) throw new Error("Gemini returned no text output.");
       return JSON.parse(text);
-    } catch (err: any) {
+    } catch (err: unknown) {
       lastErr = err;
       if (!isOverload(err)) break; // not overload -> don't retry
       await sleep(300 * attempt); // backoff

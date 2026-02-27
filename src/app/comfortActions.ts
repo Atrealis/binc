@@ -6,16 +6,15 @@ import { generateComfortReply } from "@/lib/aiComfort";
 
 export async function sendComfortMessage(formData: FormData) {
   const session_id = String(formData.get("session_id") ?? "");
-  const thread_id = String(formData.get("thread_id") ?? "");
   const phase = String(formData.get("phase") ?? "processing");
   const feeling = String(formData.get("feeling") ?? "");
   const text = String(formData.get("text") ?? "").trim();
 
-  if (!session_id || !thread_id || !text) return;
+  if (!session_id || !text) return;
 
   // 1) Insert user message
   const { error: insUserErr } = await supabase.from("comfort_messages").insert({
-    thread_id,
+    session_id,
     role: "user",
     content: text,
   });
@@ -25,7 +24,7 @@ export async function sendComfortMessage(formData: FormData) {
   const { data: msgs, error: fetchErr } = await supabase
     .from("comfort_messages")
     .select("role, content, created_at")
-    .eq("thread_id", thread_id)
+    .eq("session_id", session_id)
     .order("created_at", { ascending: true })
     .limit(30);
 
@@ -43,7 +42,7 @@ export async function sendComfortMessage(formData: FormData) {
 
   // 4) Insert assistant reply
   const { error: insBotErr } = await supabase.from("comfort_messages").insert({
-    thread_id,
+    session_id,
     role: "assistant",
     content: reply,
   });
@@ -51,4 +50,3 @@ export async function sendComfortMessage(formData: FormData) {
 
   revalidatePath("/");
 }
-
