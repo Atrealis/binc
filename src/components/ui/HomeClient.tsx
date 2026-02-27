@@ -2,10 +2,8 @@
 
 import { useState } from "react";
 import ModeSwitcher from "@/components/ui/ModeSwitcher";
-import ComfortCard from "@/components/ui/ComfortCard";
 import AnalysisPanel from "@/components/ui/AnalysisPanel";
 import ComfortChat from "@/components/ui/ComfortChat";
-
 
 export default function HomeClient({
   phase,
@@ -16,8 +14,8 @@ export default function HomeClient({
   comfortMessages,
 }: {
   phase: string;
-  requests: any[] | null;
-  error: any;
+  requests: { id: string; created_at: string; status: string; raw_text: string; result?: unknown }[] | null;
+  error: { message?: string } | null;
   sessionId: string;
   feeling: string;
   comfortMessages: {
@@ -26,25 +24,22 @@ export default function HomeClient({
     created_at: string;
   }[];
 }) {
-
   const [mode, setMode] = useState<"comfort" | "analysis">("comfort");
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <ModeSwitcher mode={mode} setMode={setMode} />
 
       {mode === "comfort" ? (
-  <ComfortChat
-    sessionId={sessionId}
-   
-    phase={phase}
-    feeling={feeling}
-    messages={comfortMessages}
-  />
-) : (
-  <AnalysisPanel requests={requests} error={error} />
-)}
-
+        <ComfortChat
+          sessionId={sessionId}
+          phase={phase}
+          feeling={feeling}
+          messages={comfortMessages}
+        />
+      ) : (
+        <AnalysisPanel requests={requests} error={error} />
+      )}
     </div>
   );
 }

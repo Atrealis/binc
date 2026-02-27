@@ -45,7 +45,7 @@ Now write Binc's next reply (plain text only).
       if (text) return text;
 
       return "I’m here with you. What’s the hardest part of this moment right now—and what do you need most, just for tonight?";
-    } catch (e: any) {
+    } catch {
       if (attempt === 3) {
         return "I’m here with you. I might be a bit slow right now—can you tell me what happened, and what part is hurting the most?";
       }

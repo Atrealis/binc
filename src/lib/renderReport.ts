@@ -33,9 +33,9 @@ export type AnalysisResultV1 = {
     has_speaker_labels?: boolean;
     missing_context?: string[];
   };
-  metrics?: Record<string, any>;
+  metrics?: Record<string, unknown>;
   patterns?: Pattern[];
-  user_contributions?: any[];
+  user_contributions?: unknown[];
   uncertainties?: { description: string }[];
   recommendations?: Recommendation[];
 };
@@ -48,14 +48,15 @@ function safeBool(x: unknown, fallback = false): boolean {
   return typeof x === "boolean" ? x : fallback;
 }
 
-function safeArr<T = any>(x: unknown): T[] {
+function safeArr<T = unknown>(x: unknown): T[] {
   return Array.isArray(x) ? (x as T[]) : [];
 }
 
-export function normalizeResult(result: any): AnalysisResultV1 {
+export function normalizeResult(result: unknown): AnalysisResultV1 {
   // Minimal normalization so UI never crashes on weird JSON
-  const meta = result?.meta ?? {};
-  const dq = result?.data_quality ?? {};
+  const r = result as Record<string, unknown> | null | undefined;
+  const meta = (r?.meta ?? {}) as Record<string, unknown>;
+  const dq = (r?.data_quality ?? {}) as Record<string, unknown>;
 
   return {
     meta: {
@@ -70,15 +71,15 @@ export function normalizeResult(result: any): AnalysisResultV1 {
       has_speaker_labels: safeBool(dq.has_speaker_labels),
       missing_context: safeArr<string>(dq.missing_context),
     },
-    metrics: result?.metrics ?? {},
-    patterns: safeArr<Pattern>(result?.patterns),
-    uncertainties: safeArr<{ description: string }>(result?.uncertainties),
-    recommendations: safeArr<Recommendation>(result?.recommendations),
-    user_contributions: safeArr(result?.user_contributions),
+    metrics: (r?.metrics ?? {}) as Record<string, unknown>,
+    patterns: safeArr<Pattern>(r?.patterns),
+    uncertainties: safeArr<{ description: string }>(r?.uncertainties),
+    recommendations: safeArr<Recommendation>(r?.recommendations),
+    user_contributions: safeArr(r?.user_contributions),
   };
 }
 
-export function formatMetricValue(value: any): string {
+export function formatMetricValue(value: unknown): string {
   if (value == null) return "";
   if (typeof value === "string") return value;
   if (typeof value === "number") return String(value);

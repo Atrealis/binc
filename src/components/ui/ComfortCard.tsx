@@ -11,11 +11,11 @@ export default function ComfortCard({ phase }: { phase: string }) {
         }
       : phase === "processing"
       ? {
-          title: "Let’s sort the mess gently.",
+          title: "Let\u2019s sort the mess gently.",
           bullets: [
             "What part hurts most right now?",
             "What story is your brain trying to write about why it happened?",
-            "What’s one alternative explanation that’s less self-blaming?",
+            "What\u2019s one alternative explanation that\u2019s less self-blaming?",
           ],
         }
       : {
@@ -28,17 +28,27 @@ export default function ComfortCard({ phase }: { phase: string }) {
         };
 
   return (
-    <div className="border rounded-md p-4 space-y-3">
-      <div className="text-xs text-gray-500">Comfort plan (phase: {phase})</div>
-      <div className="font-semibold">{content.title}</div>
-      <ul className="list-disc pl-5 text-sm space-y-1">
+    <div className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-4">
+      <div className="flex items-center gap-2">
+        <span className="h-2 w-2 rounded-full bg-primary shrink-0" aria-hidden="true" />
+        <span className="text-xs font-medium text-primary">
+          Comfort plan &middot; {phase}
+        </span>
+      </div>
+      <p className="text-base font-semibold text-foreground">{content.title}</p>
+      <ul className="space-y-2">
         {content.bullets.map((b) => (
-          <li key={b}>{b}</li>
+          <li key={b} className="flex gap-2.5 text-sm text-muted-foreground">
+            <span className="mt-0.5 h-4 w-4 shrink-0 inline-flex items-center justify-center rounded-full bg-secondary text-xs font-bold text-secondary-foreground">
+              ·
+            </span>
+            {b}
+          </li>
         ))}
       </ul>
-      <div className="text-xs text-gray-500">
-        (No AI used here — this is deterministic coaching to keep it safe + free.)
-      </div>
+      <p className="text-xs text-muted-foreground/70">
+        No AI used — deterministic coaching to keep it safe and free.
+      </p>
     </div>
   );
 }

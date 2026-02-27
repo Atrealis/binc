@@ -26,22 +26,42 @@ export default async function Home() {
         .eq("session_id", sessionId)
         .order("created_at", { ascending: true })
         .limit(30)
-    : { data: [] as any[] };
+    : { data: [] as { role: "user" | "assistant"; content: string; created_at: string }[] };
 
   return (
     <CheckinGate action={submitCheckin}>
-      <main className="p-8 space-y-8 max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold">Binc</h1>
+      <div className="min-h-screen bg-background">
+        {/* Top nav */}
+        <header className="sticky top-0 z-10 border-b border-border/60 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-xl" aria-hidden="true">🌿</span>
+              <span className="text-lg font-semibold tracking-tight">Binc</span>
+            </div>
+            {latest?.phase && (
+              <span className="text-xs font-medium text-muted-foreground bg-secondary px-3 py-1 rounded-full">
+                {latest.phase === "acute"
+                  ? "High support"
+                  : latest.phase === "processing"
+                  ? "Processing"
+                  : "Reflective"}{" "}
+                mode
+              </span>
+            )}
+          </div>
+        </header>
 
-        <HomeClient
-          phase={latest?.phase ?? "processing"}
-          requests={requests}
-          error={error}
-          sessionId={sessionId}
-          feeling={latest?.feeling ?? ""}
-          comfortMessages={comfortMessages ?? []}
-        />
-      </main>
+        <main className="max-w-3xl mx-auto px-6 py-8 space-y-8">
+          <HomeClient
+            phase={latest?.phase ?? "processing"}
+            requests={requests}
+            error={error}
+            sessionId={sessionId}
+            feeling={latest?.feeling ?? ""}
+            comfortMessages={comfortMessages ?? []}
+          />
+        </main>
+      </div>
     </CheckinGate>
   );
 }

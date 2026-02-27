@@ -1,36 +1,109 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Binc
 
-## Getting Started
+**Your emotional check-in companion.**  
+Process what you feel, understand what happened, and move forward with clarity.
 
-First, run the development server:
+Built with **Next.js 16 + TypeScript + Tailwind v4 + Supabase + Google Gemini**.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+---
+
+## UX Flow
+
+```
+/ (Landing page)
+  → "Begin today's check-in" CTA
+    → Check-in form (mood → context, 2 steps)
+      → Post-check-in confirmation (summary + next steps)
+        → Main app
+          ├── Comfort Mode  — chat with Binc about what's going on
+          └── Analysis Mode — paste a conversation for AI pattern analysis
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+1. **Pre-check-in landing** (`/`) — marketing intro with feature highlights and a single CTA.
+2. **Check-in form** — two-step form capturing mood (1–5), stress (1–5), clarity (1–5), and a free-text feeling summary.
+3. **Post-check-in confirmation** — shows a snapshot of submitted values, inferred support phase, and two next-action buttons.
+4. **Comfort Mode** — a chat interface powered by Google Gemini, tuned to the user's phase.
+5. **Analysis Mode** — paste any conversation, run AI analysis, view a structured report, and challenge the analysis with missing context.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Required Environment Variables
 
-## Learn More
+Create a `.env.local` file in the project root:
 
-To learn more about Next.js, take a look at the following resources:
+```env
+# Supabase (required)
+NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-anon-key>
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Google Gemini (required for Comfort + Analysis modes)
+GEMINI_API_KEY=<your-gemini-api-key>
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## Local Setup
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+# 1. Install dependencies
+npm install
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+# 2. Copy and fill in env vars
+cp .env.example .env.local  # then edit .env.local
+
+# 3. Apply the Supabase migration (see below)
+
+# 4. Start the dev server
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+---
+
+## Database Migration
+
+The schema lives in [`supabase/migrations/001_initial_schema.sql`](supabase/migrations/001_initial_schema.sql).
+
+### Option A — Supabase CLI
+
+```bash
+# Link to your project (first time only)
+supabase link --project-ref <project-ref>
+
+# Push migrations
+supabase db push
+```
+
+### Option B — SQL Editor
+
+1. Open your Supabase project → SQL Editor.
+2. Paste the contents of `supabase/migrations/001_initial_schema.sql`.
+3. Click **Run**.
+
+---
+
+## Data Model
+
+See [`docs/data-model.md`](docs/data-model.md) for a full description of every table, column, RLS policy, and index.
+
+**Tables:**
+- `checkins` — daily check-in sessions
+- `comfort_messages` — comfort-mode chat history
+- `analysis_requests` — submitted conversations and AI results
+- `analysis_challenges` — user corrections to analyses
+- `checkin_prompts` — seed prompts/templates per phase
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 16 (App Router, Turbopack) |
+| Language | TypeScript (strict) |
+| Styling | Tailwind CSS v4 |
+| Database | Supabase (PostgreSQL + RLS) |
+| AI | Google Gemini (`@google/genai`) |
+| Icons | Lucide React |
+| UI primitives | Radix UI Slot + CVA |
