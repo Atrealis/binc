@@ -155,7 +155,7 @@ export default function PostCheckin({
           >
             <span className="flex items-center gap-3">
               <BarChart2 className="h-4 w-4 text-primary" aria-hidden="true" />
-              Analyse a conversation
+              Analyze a conversation
             </span>
             <ArrowRight className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           </button>

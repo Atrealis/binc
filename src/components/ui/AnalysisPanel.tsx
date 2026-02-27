@@ -27,7 +27,7 @@ export default function AnalysisPanel({
       <div className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-4">
         <div className="space-y-1">
           <h2 className="text-base font-semibold text-foreground">
-            Analyse a conversation
+            Analyze a conversation
           </h2>
           <p className="text-sm text-muted-foreground">
             Paste the text of a conversation to get evidence-based pattern analysis.
@@ -48,7 +48,7 @@ export default function AnalysisPanel({
               placeholder="Paste the conversation here…"
               rows={8}
               className="w-full rounded-xl border border-input bg-background p-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 transition-shadow resize-none"
-              aria-label="Conversation text to analyse"
+              aria-label="Conversation text to analyze"
             />
           </div>
           <div className="flex justify-end">
@@ -57,7 +57,7 @@ export default function AnalysisPanel({
               className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 active:scale-95 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
             >
               <Play className="h-4 w-4" aria-hidden="true" />
-              Analyse conversation
+              Analyze conversation
             </button>
           </div>
         </form>
