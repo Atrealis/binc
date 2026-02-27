@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+
 export default function ModeSwitcher({
   mode,
   setMode,
@@ -9,20 +11,20 @@ export default function ModeSwitcher({
 }) {
   return (
     <div className="flex gap-2">
-      <button
+      <Button
         onClick={() => setMode("comfort")}
-        className={`px-3 py-2 rounded-md border text-sm ${mode === "comfort" ? "bg-black text-white" : ""}`}
+        variant={mode === "comfort" ? "default" : "outline"}
         type="button"
       >
         Comfort Mode
-      </button>
-      <button
+      </Button>
+      <Button
         onClick={() => setMode("analysis")}
-        className={`px-3 py-2 rounded-md border text-sm ${mode === "analysis" ? "bg-black text-white" : ""}`}
+        variant={mode === "analysis" ? "default" : "outline"}
         type="button"
       >
         Analysis Mode
-      </button>
+      </Button>
     </div>
   );
 }

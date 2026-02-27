@@ -19,7 +19,7 @@ export default function CheckinGate({
 
   if (!checkedIn) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6 bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center p-6 bg-muted">
 
         <div className="w-full max-w-md">
           <CheckinCard
