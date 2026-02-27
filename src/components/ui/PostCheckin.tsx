@@ -8,7 +8,7 @@ interface PostCheckinProps {
   clarity: number;
   feeling: string;
   phase: string;
-  onContinue: () => void;
+  onContinue: (mode: "comfort" | "analysis") => void;
 }
 
 function phaseLabel(phase: string) {
@@ -139,18 +139,18 @@ export default function PostCheckin({
           </p>
 
           <button
-            onClick={onContinue}
+            onClick={() => onContinue("comfort")}
             className="w-full inline-flex items-center justify-between rounded-xl border border-border bg-card px-5 py-4 text-sm font-medium text-foreground shadow-sm hover:bg-secondary/50 active:scale-[0.98] transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
           >
             <span className="flex items-center gap-3">
               <MessageCircle className="h-4 w-4 text-primary" aria-hidden="true" />
-              Talk it through with Binc
+              Talk it through now
             </span>
             <ArrowRight className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           </button>
 
           <button
-            onClick={onContinue}
+            onClick={() => onContinue("analysis")}
             className="w-full inline-flex items-center justify-between rounded-xl border border-border bg-card px-5 py-4 text-sm font-medium text-foreground shadow-sm hover:bg-secondary/50 active:scale-[0.98] transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
           >
             <span className="flex items-center gap-3">

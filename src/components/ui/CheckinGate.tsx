@@ -20,10 +20,11 @@ export default function CheckinGate({
   children,
 }: {
   action: (formData: FormData) => void;
-  children: React.ReactNode;
+  children: (initialMode: "comfort" | "analysis") => React.ReactNode;
 }) {
   const [gateState, setGateState] = useState<GateState>("landing");
   const [checkinData, setCheckinData] = useState<CheckinData | null>(null);
+  const [initialMode, setInitialMode] = useState<"comfort" | "analysis">("comfort");
 
   if (gateState === "landing") {
     return <LandingPage onBegin={() => setGateState("checkin")} />;
@@ -64,10 +65,13 @@ export default function CheckinGate({
         clarity={checkinData.clarity}
         feeling={checkinData.feeling}
         phase={checkinData.phase}
-        onContinue={() => setGateState("app")}
+        onContinue={(mode) => {
+          setInitialMode(mode);
+          setGateState("app");
+        }}
       />
     );
   }
 
-  return <>{children}</>;
+  return <>{children(initialMode)}</>;
 }
