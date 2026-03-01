@@ -3,6 +3,8 @@ import { submitCheckin } from "./checkinActions";
 import HomeClient from "@/components/ui/HomeClient";
 import CheckinGate from "@/components/ui/CheckinGate";
 
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   const { data: requests, error } = await supabase
     .from("analysis_requests")

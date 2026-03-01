@@ -31,11 +31,6 @@ export default function ComfortChat({
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [optimisticMsgs, waiting]);
 
-  // Clear waiting indicator once the server has returned new messages
-  useEffect(() => {
-    setWaiting(false);
-  }, [messages]);
-
   const phaseLabel =
     phase === "acute"
       ? "High support"
@@ -114,7 +109,11 @@ export default function ComfortChat({
             addOptimistic({ role: "user", content: text, created_at: new Date().toISOString() });
             setWaiting(true);
             formRef.current?.reset();
-            await sendComfortMessage(formData);
+            try {
+              await sendComfortMessage(formData);
+            } finally {
+              setWaiting(false);
+            }
           }}
           className="flex gap-2 items-end"
         >
