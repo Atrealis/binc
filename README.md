@@ -96,6 +96,30 @@ See [`docs/data-model.md`](docs/data-model.md) for a full description of every t
 
 ---
 
+## Comfort Response Generation
+
+Comfort Mode replies are produced by `src/lib/aiComfort.ts` (`generateComfortReply`).
+
+### Pipeline
+
+1. **Crisis detection** — the latest user message is scanned for self-harm/suicidal keywords before anything else. If a match is found, a compassionate acknowledgement is returned immediately along with local crisis-line numbers (US: 988; international: findahelpline.com). No LLM call is made.
+
+2. **Emotion extraction** — a lightweight rule-based helper (`extractEmotionSignals`) scans the user's message for emotion themes (grief, heartbreak, anxiety, shame, anger, loneliness, hurt). Detected themes are injected into the system prompt so the model explicitly references them.
+
+3. **Context-aware prompting** — the last 12 messages (with `User:` / `Binc:` speaker labels) are included in the prompt together with the user's phase (`acute` / `processing` / `reflective`) and the feeling they entered at check-in.
+
+4. **LLM call with retry** — the request is tried against `gemini-2.0-flash`, then `gemini-2.0-flash-lite`, with up to 3 attempts each (400 ms × attempt backoff).
+
+5. **Varied fallback** — if every attempt fails, a response is drawn from a 6-item pool (`FALLBACK_POOL`). The same index is never returned twice in a row.
+
+6. **Telemetry** — every outcome is logged to stdout as structured JSON via `logTelemetry`:
+   - `llm_success` — model, attempt number, latency (ms)
+   - `llm_failure` — model, attempt number, latency (ms)
+   - `crisis_detected` — latency (ms)
+   - `fallback_used` — latency (ms)
+
+---
+
 ## Tech Stack
 
 | Layer | Technology |
