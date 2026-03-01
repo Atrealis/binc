@@ -30,6 +30,7 @@ export default async function Home() {
 
   return (
     <CheckinGate action={submitCheckin}>
+      {(initialMode) => (
       <div className="min-h-screen bg-background">
         {/* Top nav */}
         <header className="sticky top-0 z-10 border-b border-border/60 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -53,6 +54,7 @@ export default async function Home() {
 
         <main className="max-w-3xl mx-auto px-6 py-8 space-y-8">
           <HomeClient
+            initialMode={initialMode}
             phase={latest?.phase ?? "processing"}
             requests={requests}
             error={error}
@@ -62,6 +64,7 @@ export default async function Home() {
           />
         </main>
       </div>
+      )}
     </CheckinGate>
   );
 }

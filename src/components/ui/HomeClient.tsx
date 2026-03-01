@@ -6,6 +6,7 @@ import AnalysisPanel from "@/components/ui/AnalysisPanel";
 import ComfortChat from "@/components/ui/ComfortChat";
 
 export default function HomeClient({
+  initialMode = "comfort",
   phase,
   requests,
   error,
@@ -13,6 +14,7 @@ export default function HomeClient({
   feeling,
   comfortMessages,
 }: {
+  initialMode?: "comfort" | "analysis";
   phase: string;
   requests: { id: string; created_at: string; status: string; raw_text: string; result?: unknown }[] | null;
   error: { message?: string } | null;
@@ -24,7 +26,7 @@ export default function HomeClient({
     created_at: string;
   }[];
 }) {
-  const [mode, setMode] = useState<"comfort" | "analysis">("comfort");
+  const [mode, setMode] = useState<"comfort" | "analysis">(initialMode);
 
   return (
     <div className="space-y-6">
