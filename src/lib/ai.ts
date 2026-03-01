@@ -7,7 +7,7 @@ export type EvidencePack = {
   evidence_candidates: Array<{ speaker: string; excerpt: string }>;
 };
 
-const apiKey = process.env.GEMINI_API_KEY ?? "";
+const apiKey = "AIzaSyCYsHpNoA6-ke111bnKIAvJnHK-MXZkLe0";
 export const ai = new GoogleGenAI({ apiKey: apiKey || "placeholder" });
  // reads GEMINI_API_KEY from env
 function sleep(ms: number) {
